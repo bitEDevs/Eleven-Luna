@@ -261,3 +261,48 @@ if (signInSub) {
                 err.style.display = 'block';
             }
         }
+
+// Toast Notification Trigger Function
+function showToast(message) {
+    const toast = document.getElementById('toast-notification');
+    const toastMsg = document.getElementById('toast-message');
+
+    if (toast) {
+        toastMsg.textContent = message;
+        toast.classList.add('show');
+
+        // Automatic na mawawala pagkatapos ng 3.5 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3500);
+    }
+}
+
+// Open Modal depending on local device state & passcode.json
+async function openPinModal() {
+    closePinModals();
+    let savedPin = localStorage.getItem('eleven_luna_pin');
+
+    if (!savedPin) {
+        try {
+            const res = await fetch('passcode.json');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.passcode) {
+                    savedPin = data.passcode;
+                    localStorage.setItem('eleven_luna_pin', savedPin);
+                }
+            }
+        } catch (err) {
+            console.log("No existing passcode.json or fetch failed.");
+        }
+    }
+
+    // KAPAG MAY SAVED PIN (Existing / Registered User)
+    if (savedPin) {
+        document.getElementById('pin-login-modal').classList.add('show');
+    } else {
+        // KAPAG WALANG SAVED PIN (New Device / New User) -> Ipakita ang Toast sa halip na setup wrapper
+        showToast("It seems you are not yet registered.");
+    }
+}
