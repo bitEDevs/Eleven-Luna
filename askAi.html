@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ChatLeo - Classroom AI Assistant</title>
+<style>
+  /* =========================================================
+     1. LUNA THEME VARIABLES & STYLING
+     ========================================================= */
+  :root {
+    --luna-bg: #0d0f1d;
+    --luna-card-bg: rgba(22, 27, 46, 0.85);
+    --luna-primary: #a78bfa;     /* Soft Moonlit Violet */
+    --luna-secondary: #c084fc;   /* Crescent Glow */
+    --luna-accent: #fef08a;      /* Starlight Yellow */
+    --luna-text-main: #f3f4f6;
+    --luna-text-muted: #9ca3af;
+    --luna-border: rgba(167, 139, 250, 0.25);
+    --luna-glow: rgba(167, 139, 250, 0.4);
+    --error: #ef4444;
+  }
+
+  * { 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; 
+  }
+
+  body {
+    margin: 0;
+    height: 100vh;
+    height: 100dvh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--luna-bg);
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(167, 139, 250, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(192, 132, 252, 0.12) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(13, 15, 29, 0.95) 0%, #070811 100%);
+    color: var(--luna-text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* ---------- Container ---------- */
+  #panel {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ---------- Header ---------- */
+  #head {
+    background: rgba(15, 20, 35, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    padding: 12px 20px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--luna-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    flex-shrink: 0;
+  }
+  #head h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--luna-primary);
+    text-shadow: 0 0 10px rgba(167, 139, 250, 0.3);
+    letter-spacing: 0.5px;
+  }
+  #head .status {
+    font-size: 12px;
+    color: var(--luna-text-muted);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #head .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--luna-secondary);
+    box-shadow: 0 0 8px var(--luna-secondary);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-signin {
+    background: rgba(167, 139, 250, 0.12);
+    color: var(--luna-primary);
+    border: 1px solid var(--luna-border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .btn-signin:hover {
+    background: var(--luna-primary);
+    color: #0d0f1d;
+    box-shadow: 0 0 12px var(--luna-glow);
+  }
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(192, 132, 252, 0.12);
+    border: 1px solid var(--luna-border);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--luna-secondary);
+  }
+  .btn-signout {
+    background: transparent;
+    border: none;
+    color: #f87171;
+    cursor: pointer;
+    font-size: 11px;
+    text-decoration: underline;
+    margin-left: 2px;
+    padding: 0;
+  }
+  .btn-signout:hover { color: #ef4444; }
+
+  /* ---------- Main View ---------- */
+  #mainView {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px 16px;
+    overflow-y: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #heroContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70px;
+    margin-top: auto;
+    margin-bottom: auto;
+    width: 100%;
+    padding: 10px 0;
+  }
+
+  .hero-icon {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    opacity: 0;
+    animation: iconTransform 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes iconTransform {
+    0% {
+      opacity: 0;
+      transform: scale(0.2) rotate(-60deg);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1.25) rotate(12deg);
+    }
+    70% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.6) rotate(20deg);
+    }
+  }
+
+  #greetingHeading {
+    position: absolute;
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, var(--luna-primary) 50%, var(--luna-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+    animation: textReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards;
+    white-space: normal;
+    padding: 0 10px;
+    line-height: 1.3;
+  }
+
+  @keyframes textReveal {
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* ---------- Chat Log ---------- */
+  #log {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: auto;
+  }
+
+  .msg {
+    max-width: 88%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 15px;
+    line-height: 1.5;
+    word-break: break-word;
+    animation: fadeIn 0.2s ease-out;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    position: relative;
+    user-select: text;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .bot {
+    align-self: flex-start;
+    background: var(--luna-card-bg);
+    color: var(--luna-text-main);
+    border-bottom-left-radius: 4px;
+    border: 1px solid var(--luna-border);
+    backdrop-filter: blur(10px);
+  }
+  .bot a { color: var(--luna-primary); font-weight: 600; }
+  .bot b, .bot strong { color: var(--luna-accent); }
+  .bot code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+  .bot ul, .bot ol { margin: 8px 0; padding-left: 18px; }
+  .bot li { margin-bottom: 4px; }
+
+  .user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, var(--luna-primary) 0%, var(--luna-secondary) 100%);
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+    font-weight: 500;
+  }
+
+  /* Actions Bar */
+  .msg-actions {
+    position: absolute;
+    top: -12px;
+    right: 8px;
+    display: flex;
+    gap: 2px;
+    background: rgba(15, 20, 35, 0.95);
+    border: 1px solid var(--luna-border);
+    border-radius: 8px;
+    padding: 2px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    z-index: 5;
+  }
+
+  .msg:hover .msg-actions,
+  .msg:active .msg-actions,
+  .msg.touch-active .msg-actions {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .msg-btn {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--luna-text-muted);
+    transition: background 0.2s, color 0.2s;
+    width: 26px;
+    height: 26px;
+  }
+  .msg-btn:hover {
+    background: rgba(167, 139, 250, 0.2);
+    color: var(--luna-primary);
+  }
+  .msg-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+  }
+
+  .edit-area {
+    width: 100%;
+    min-height: 70px;
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--luna-border);
+    background: rgba(13, 15, 29, 0.8);
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    resize: vertical;
+  }
+  .edit-save-btn {
+    margin-top: 6px;
+    background: var(--luna-primary);
+    color: #0d0f1d;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  /* ---------- Processing Animation ---------- */
+  .processing-box {
+    position: relative;
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    overflow: hidden;
+    z-index: 1;
+    animation: dynamicBgShift 6s ease-in-out infinite alternate;
+  }
+
+  @keyframes dynamicBgShift {
+    0%   { background-color: rgba(22, 27, 46, 0.9); }
+    50%  { background-color: rgba(30, 41, 59, 0.9); }
+    100% { background-color: rgba(22, 27, 46, 0.95); }
+  }
+
+  .processing-box::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, var(--luna-primary), var(--luna-secondary), var(--luna-accent), var(--luna-primary));
+    animation: spinBorder 3s linear infinite;
+    z-index: -2;
+  }
+
+  .processing-box::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border-radius: 14px;
+    border-bottom-left-radius: 2px;
+    background: inherit;
+    z-index: -1;
+  }
+
+  @keyframes spinBorder {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .processing-icon-wrap {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 500px;
+  }
+
+  .spin-3d-instant {
+    animation: continuousSpin3D 1.2s infinite linear;
+    transform-style: preserve-3d;
+  }
+
+  @keyframes continuousSpin3D {
+    0%   { transform: rotateY(0deg) rotateX(10deg); }
+    100% { transform: rotateY(360deg) rotateX(10deg); }
+  }
+
+  .processing-text {
+    font-size: 14px;
+    color: var(--luna-text-main);
+    font-weight: 600;
+  }
+
+  .animated-dots::after {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    text-align: left;
+    animation: dotsSequence 1.5s infinite steps(4, jump-none);
+  }
+
+  @keyframes dotsSequence {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: '...'; }
+  }
+
+  .ai-word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(3px);
+    animation: aiWordFade 0.25s forwards ease-out;
+  }
+  @keyframes aiWordFade {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ---------- Footer Inputs ---------- */
+  #inputContainer {
+    border-top: 1px solid var(--luna-border);
+    background: rgba(15, 20, 35, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    padding: 12px 16px 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  #inputBar {
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  #inputBar input {
+    flex: 1;
+    background: rgba(22, 27, 46, 0.7);
+    border: 1px solid var(--luna-border);
+    border-radius: 24px;
+    padding: 12px 18px;
+    font-size: 15px;
+    color: #ffffff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  #inputBar input::placeholder {
+    color: var(--luna-text-muted);
+  }
+  #inputBar input:focus {
+    border-color: var(--luna-primary);
+    box-shadow: 0 0 12px var(--luna-glow);
+  }
+  #inputBar input:disabled {
+    background: rgba(13, 15, 29, 0.5);
+    cursor: not-allowed;
+  }
+
+  #sendBtn {
+    width: 44px; 
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--luna-primary) 0%, var(--luna-secondary) 100%);
+    cursor: pointer;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px var(--luna-glow);
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+  }
+  #sendBtn:hover { 
+    transform: scale(1.04); 
+    box-shadow: 0 0 18px var(--luna-glow);
+  }
+  #sendBtn svg { width: 18px; height: 18px; fill: #ffffff; }
+
+  #sendBtn.is-generating {
+    background: #ef4444;
+  }
+  #sendBtn.is-generating:hover {
+    background: #dc2626;
+  }
+
+  .disclaimer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--luna-text-muted);
+    margin: 0;
+  }
+
+  /* ---------- Modals ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(7, 8, 17, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 16px;
+  }
+  .modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .login-card {
+    background: rgba(22, 27, 46, 0.95);
+    border: 1px solid var(--luna-border);
+    width: 100%;
+    max-width: 380px;
+    border-radius: 20px;
+    padding: 24px 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    transform: translateY(24px) scale(0.95);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    color: #ffffff;
+  }
+  .modal-overlay.active .login-card {
+    transform: translateY(0) scale(1);
+  }
+
+  .login-card .close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--luna-text-muted);
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+  }
+  .login-card .close-btn:hover { color: #ffffff; }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .login-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--luna-primary);
+    font-weight: 700;
+  }
+  .login-header p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--luna-text-muted);
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--luna-text-main);
+    margin-bottom: 6px;
+  }
+  .form-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--luna-border);
+    background: rgba(13, 15, 29, 0.8);
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .form-group input:focus {
+    border-color: var(--luna-primary);
+    box-shadow: 0 0 10px var(--luna-glow);
+  }
+
+  .password-wrapper {
+    position: relative;
+    width: 100%;
+  }
+  .password-wrapper input {
+    padding-right: 42px;
+  }
+  .toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--luna-text-muted);
+  }
+  .toggle-password:hover { color: var(--luna-primary); }
+  .toggle-password svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+
+  .login-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--luna-primary) 0%, var(--luna-secondary) 100%);
+    color: #ffffff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 6px;
+  }
+  .login-btn:hover { 
+    box-shadow: 0 0 15px var(--luna-glow);
+  }
+
+  .login-notice {
+    background: rgba(167, 139, 250, 0.15);
+    color: var(--luna-primary);
+    border: 1px solid var(--luna-border);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 14px;
+    display: none;
+    text-align: center;
+  }
+
+  .error-msg {
+    color: var(--error);
+    font-size: 12px;
+    margin-top: 10px;
+    text-align: center;
+    display: none;
+    font-weight: 500;
+  }
+
+  @media (min-width: 640px) {
+    #head { padding: 16px 32px; }
+    #head h1 { font-size: 22px; }
+    #head .status { font-size: 14px; }
+    .btn-signin { padding: 8px 18px; font-size: 14px; }
+    .user-badge { padding: 6px 14px; font-size: 14px; gap: 10px; }
+    #mainView { padding: 32px; }
+    #greetingHeading { font-size: 28px; }
+    .hero-icon { width: 64px; height: 64px; }
+    #heroContainer { min-height: 90px; }
+    .msg { max-width: 75%; padding: 16px 22px; font-size: 16px; }
+    #inputContainer { padding: 16px 32px 12px 32px; }
+    #inputBar input { padding: 16px 24px; font-size: 16px; }
+    #sendBtn { width: 52px; height: 52px; }
+    #sendBtn svg { width: 20px; height: 20px; }
+    .login-card { padding: 36px; }
+    .login-header h2 { font-size: 24px; }
+    .login-header p { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="panel">
+  <div id="head">
+    <div>
+      <h1>ChatLeo Assistant</h1>
+      <p class="status"><span class="dot"></span> Active</p>
+    </div>
+    <div class="header-actions">
+      <div id="userProfile" style="display: none;" class="user-badge">
+        <span id="headerUsername">Student</span>
+        <button id="signOutBtn" class="btn-signout">Sign Out</button>
+      </div>
+      <button id="signInModalBtn" class="btn-signin">Sign In</button>
+    </div>
+  </div>
+  
+  <div id="mainView">
+    <div id="heroContainer">
+      <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+        <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fef08a" />
+          <stop offset="100%" stop-color="#a78bfa" />
+        </linearGradient>
+      </svg>
+
+      <svg id="icon-star" class="hero-icon" viewBox="0 0 24 24" style="display:none;">
+        <path fill="url(#iconGradient)" d="M12 0L14.59 8.41L23 11L14.59 13.59L12 22L9.41 13.59L1 11L9.41 8.41L12 0Z"/>
+      </svg>
+      <svg id="icon-flower" class="hero-icon" viewBox="0 0 24 24" style="display:none;">
+        <path fill="url(#iconGradient)" d="M12,2 C10.34,2 9,3.34 9,5 C9,5.78 9.3,6.49 9.79,7.03 C8.42,6.38 6.74,6.65 5.64,7.76 C4.27,9.13 4.27,11.34 5.64,12.71 C6.32,13.39 7.21,13.73 8.1,13.73 C8.73,13.73 9.36,13.56 9.91,13.21 C9.26,14.58 9.53,16.26 10.64,17.36 C12.01,18.73 14.22,18.73 15.59,17.36 C16.27,16.68 16.61,15.79 16.61,14.9 C16.61,14.27 16.44,13.64 15.09,13.09 C17.46,13.74 19.14,13.47 20.24,12.36 C21.61,10.99 21.61,8.78 20.24,7.41 C19.56,6.73 18.67,6.39 17.78,6.39 C17.15,6.39 16.52,6.56 15.97,6.91 C16.62,5.54 16.35,3.86 15.24,2.76 C14.36,1.88 13.18,1.6 12.08,1.87 L12,2 Z"/>
+      </svg>
+      <svg id="icon-box" class="hero-icon" viewBox="0 0 24 24" style="display:none;">
+        <path fill="url(#iconGradient)" d="M12 1L2 6v12l10 5 10-5V6L12 1zm0 2.2l6.8 3.4-2.8 1.4-6.8-3.4 2.8-1.4zM4.4 7.6l6.6 3.3v7.3L4.4 15V7.6zm8.6 10.6v-7.3l6.6-3.3V15l-6.6 3.2z"/>
+      </svg>
+      <svg id="icon-orbit" class="hero-icon" viewBox="0 0 24 24" style="display:none;">
+        <path fill="url(#iconGradient)" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm4-8a4 4 0 1 1-4-4 4 4 0 0 1 4 4z"/>
+      </svg>
+      <svg id="icon-lightning" class="hero-icon" viewBox="0 0 24 24" style="display:none;">
+        <path fill="url(#iconGradient)" d="M7 2v11h3v9l7-12h-4l4-8z"/>
+      </svg>
+
+      <h2 id="greetingHeading">What's on our agenda today?</h2>
+    </div>
+
+    <div id="log"></div>
+  </div>
+
+  <div id="inputContainer">
+    <div id="inputBar">
+      <input id="userInput" type="text" placeholder="Ask ChatLeo..." autocomplete="off">
+      <button id="sendBtn" aria-label="Send">
+        <svg id="sendSvg" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+        <svg id="stopSvg" viewBox="0 0 24 24" style="display:none;"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>
+      </button>
+    </div>
+    <p class="disclaimer">ChatLeo is AI and can make mistakes.</p>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal-overlay">
+  <div class="login-card">
+    <button class="close-btn" id="closeModalBtn">&times;</button>
+    <div class="login-header">
+      <h2>Welcome Back</h2>
+      <p>Sign in to your student portal account</p>
+    </div>
+    <div id="loginNotice" class="login-notice">Please sign in first to continue chatting with ChatLeo.</div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="loginUsername">Full Name (Username)</label>
+        <input type="text" id="loginUsername" placeholder="e.g. Juan A. Dela Cruz" required autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="loginPassword" placeholder="Enter your password" required>
+          <button type="button" class="toggle-password" id="togglePasswordBtn" aria-label="Toggle password visibility">
+            <svg id="eyeIcon" viewBox="0 0 24 24">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="login-btn">Sign In</button>
+      <div id="loginError" class="error-msg">Incorrect username or password. Please try again.</div>
+    </form>
+  </div>
+</div>
+
+<div id="displayNameModal" class="modal-overlay">
+  <div class="login-card">
+    <div class="login-header">
+      <h2>Personalize Profile</h2>
+      <p>What name would you like ChatLeo to call you?</p>
+    </div>
+    <form id="displayNameForm">
+      <div class="form-group">
+        <label for="preferredName">Preferred Username</label>
+        <input type="text" id="preferredName" placeholder="e.g. Juan Luna" required autocomplete="off">
+      </div>
+      <button type="submit" class="login-btn">Continue to ChatLeo</button>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  // UNCHANGED DEFAULT USER DATABASE
+  const USER_DATABASE = [
+    { username: "Darryl L. Barotilla", password: "darryl1" },
+    { username: "Jay-el S. Buenconcijo", password: "jay-el2" },
+    { username: "Jemwel A. Burac", password: "jemwel3" },
+    { username: "Juan Miguel B. De Lara", password: "juan miguel4" },
+    { username: "Rovic P. Gamboa", password: "rovic5" },
+    { username: "Brent T. Gonzales", password: "brent6" },
+    { username: "John Kelvin M. Librando", password: "john kelvin7" },
+    { username: "Rhanz Ivan B. Octa", password: "rhanz ivan8" },
+    { username: "Jonalyn D. Aboy", password: "jonalyn1" },
+    { username: "Sarah G. Cadungog", password: "sarah2" },
+    { username: "Xiaren Georgina R. Chuayap", password: "xiaren georgina3" },
+    { username: "Merry Angel Lhynne R. Cortez", password: "merry angel lhynne4" },
+    { username: "Ashley Nicolle G. Demitillo", password: "ashley nicolle5" },
+    { username: "Nathalie N. Fetalino", password: "nathalie6" },
+    { username: "Alexa Mae R. Gamboa", password: "alexa mae7" },
+    { username: "Jenna E. Gonzales", password: "jenna8" },
+    { username: "Justine Joyce M. Ignacio", password: "justine joyce9" },
+    { username: "Jahnelle L. Lucreda", password: "jahnelle10" },
+    { username: "Shenna P. Lucreda", password: "shenna11" },
+    { username: "Lhorence Hanna R. Occiano", password: "lhorence hanna12" },
+    { username: "Nizia Mae A. Precilla", password: "nizia mae13" },
+    { username: "Princess Jandy E. Reyes", password: "princess jandy14" },
+    { username: "Sunbeam Love Q. Sonalan", password: "sunbeam love15" }
+  ];
+
+  const GENERAL_KNOWLEDGE_BASE = [
+    {
+      keywords: ["login", "login details", "how to login", "sign in", "credentials"],
+      reply: "<p>You are asking about: <i>LOGIN</i>.<br> Our system is asking you to verify your identity throughout the login process to validate your credibility. The following instructions guide you to login:<br><br> <b>1. Secret key</b> - Your secret key contains your username and passcode shall be made by your official website developer. Please becareful, do not accept a secret from unauthorized/untrusted person to avoid personal details leaks.<br><b>2. Login</b> - Once you get your official secret key follow these step: <i>Login Dashboard > Enter Classroom > Fill out the form > Verify through reCAPTCHA > Click Continue.</i> You are automatically redirected to the next page.<br><b>3. Verify Email</b> - You are asking to provide your valid email to complete the process, be assured that your email will be used solely for additional identity verification in complience to <i>Republic Act 10173 (Data Privacy Act of 2012).</i><br><br> After following the instructions, you shall be able to enter the classroom dashboard, and use all available features.<br><br> There is a problem? Reply the following concern;<br>• I can't able to login<br>• Error in email verification<br>• Invalid username or password</p>"
+    },
+    {
+      keywords: ["hello", "hi", "hey"],
+      reply: "<p>Hello! I am <b>ChatLeo</b>, your AI Assistant. How can I help you today?</p>"
+    },
+    {
+      keywords: ["schedule", "classes"],
+      reply: "<p>Check the <b>Classroom Portal</b> tab for your complete class timetable.</p>"
+    },
+    { keywords: ["patch", "version", "note", "chatbot"],
+      reply: "<i>ChatLeo v1.0-Advance:</i><br><br> <b><font color='#D4AF37'>1. Advanced Annual Calendar Engine & Temporal Processing</font></b><br><i>Architectural Design & Mathematical Foundations</i>: The calendar generation subsystem is architected to render complex annual matrices dynamically without relying on external heavy graphic libraries or server-side rendering pipelines. Operating entirely within the browser's execution thread, the engine calculates exact day-of-the-week alignments using native JavaScript Date object instantiations and calendar offset algorithms.<br><br><b>• Supported Temporal Range:</b> The engine fully supports calendar computations, leap-year adjustments, and weekday shifts for user-requested years spanning from 1975 to 2050. Years outside this designated window trigger a controlled fallback exception to prevent invalid date rendering.<br><b>• Responsive Grid Architecture:</b> Every annual rendering utilizes CSS Grid layouts to automatically restructure monthly matrices based on viewport widths, ensuring optimal readability across mobile devices, tablets, and desktop displays.<br><b>• Month-by-Month Matrix Mapping:</b> For each of the twelve months, the system computes the precise starting weekday index using the JavaScript Date object and determines month lengths dynamically, accurately compensating for leap years in February.<br><br><b><font color='#D4AF37'>Visual Styling & Interactive Highlighting</font></b><br><b>• Color-Coded Nodes:</b> Standard calendar cells utilize a translucent frosted glass background, whereas dates coinciding with declared national holidays or cultural observances are styled with a distinct crimson accent and warning border.<br><b>• Tooltips & Metadata Integration:</b> Hovering or tapping over highlighted holiday nodes reveals native HTML title attributes displaying the official designation and classification of the specific day.<br><br><b><font color='#D4AF37'>2. Smart Holiday Resolution & Statutory Labor Compliance Matrix</font></b><br><i>Algorithmic Date Parsing & Cross-Referencing</i>: The natural language processing layer incorporates a regex-based extraction pipeline designed to isolate temporal entities such as months, numerical dates, and target years from unstructured user prompts.<br><br><b>• Month and Day Extraction:</b> The system scans input strings for English month identifiers from January through December, including standard three-letter abbreviations, and couples them with numerical day tokens and four-digit year values. If a year is omitted, the system defaults to the current year.<br><b>• Dynamic Floating Holiday Calculation:</b> Certain national observances do not fall on fixed calendar dates. The engine features specialized algorithmic functions such as getLastMondayOfAugust(year) to programmatically determine floating holidays by scanning backward from the final day of August until the first Monday is identified.<br><br><i>Structured Response Generation & Labor Laws</i><br>When a holiday query is successfully resolved, the assistant constructs a comprehensive response structured around applicable labor rules and legal foundations.<br><br><b>• Identification & Classification:</b> Clearly distinguishes between Regular Holidays and Special Non-Working Holidays.<br><b>• Historical and Cultural Context:</b> Explains the foundational significance behind the commemoration, including historical resistance, religious devotion, civic sovereignty, or cultural importance.<br><b>• Statutory Wage Compliance:</b> Provides applicable compensation information, including holiday pay and premium pay rules when relevant to the selected holiday classification.<br><br><b><font color='#D4AF37'>3. Scientific Math Evaluator & Secure Arithmetic Pipeline</font></b><br><i>Computational Safety & Sanitization</i>: To prevent vulnerabilities associated with unrestricted code execution, the scientific math evaluator utilizes an isolated sanitization and mapping layer before processing mathematical expressions.<br><br><b>• String Transformation & Operator Normalization:</b> Input expressions are converted to lowercase, whitespace is removed, and recognized mathematical shorthand is mapped to supported JavaScript Math functions.<br><b>• Trigonometric Functions:</b> sin(x), cos(x), and tan(x) are mapped to Math.sin, Math.cos, and Math.tan.<br><b>• Logarithmic and Exponential Functions:</b> sqrt(x) is mapped to Math.sqrt, log(x) to Math.log10, and ln(x) to Math.log.<br><b>• Constants:</b> pi and π are mapped to Math.PI, while e is mapped to Math.E.<br><b>• Exponents:</b> Caret symbols are normalized to JavaScript exponentiation operators.<br><b>• Strict Character Whitelisting:</b> Regular expression validation ensures that only approved numeric digits, arithmetic operators, decimal points, parentheses, and authorized mathematical keywords are processed. Unauthorized characters or invalid syntax are rejected safely.<br><br><b><font color='#D4AF37'>4. Unified Message Interaction, Custom Override Suite & UI State Controls</font></b><br><i>Granular Message Toolbars & Clipboard Management</i>: Every message rendered within the chat log container features a context-aware action toolbar that appears upon mouse hover, touch activation, or long-press gestures.<br><br><b>• One-Tap Clipboard Copying:</b> Users can instantly copy the exact text content of any message to the device clipboard. After successful execution, the copy icon changes into a verification checkmark for a short period before resetting.<br><b>• Inline Message Editing:</b> User messages can be edited by loading the historical query into the main input bar, allowing quick resubmission or prompt refinement.<br><b>• Bot Answer Editing:</b> Assistant messages can be modified through an inline interactive text area directly inside the message card, allowing users to correct or rewrite the generated response.<br><b>• Custom Answer Saving:</b> Saving a customized assistant response immediately updates the displayed message content within the conversation interface.<br><br><i>Real-Time Generation Controls & Processing Animations</i><br><b>• Stop Generation Architecture:</b> During active response generation, the send button transforms into a cancellation control. Users can halt ongoing typewriter animation loops, clear active timers, and stop pending processing operations.<br><b>• Dynamic Processing Box:</b> While processing queries, the assistant displays an animated container featuring a rotating vector-style graphic and a pulsing Thinking indicator driven by CSS animations.<br><br><b><font color='#D4AF37'>5. Student Portal Authentication & Session Persistence Layer</font></b><br><i>Institutional Roster Integration</i>: The application incorporates a pre-configured student authentication system containing registered student accounts and credential information.<br><br><b>• Secure Local Storage Management:</b> Successful login attempts store the active session through the browser localStorage mechanism using the chatleo_account key, allowing authentication state to persist across browser refreshes and tab closures.<br><b>• Dynamic Profile Customization:</b> After the first successful authentication, users can configure a preferred username or nickname through a profile customization interface.<br><b>• Session Restoration:</b> When the application is reopened, the system checks for an existing chatleo_account session and restores the appropriate authenticated interface when valid session information is available.<br><b>• Authentication State Control:</b> Login, logout, and session initialization events update the interface according to the current authentication state.<br><br><b><font color='#D4AF37'>6. Persistent Conversation State & Local Data Management</font></b><br><i>Client-Side State Architecture</i>: The conversation management subsystem maintains chat continuity through structured in-memory state synchronization combined with browser-native persistence mechanisms. Each interaction is represented as a structured message object containing role metadata, textual content, timestamps, and optional interface state attributes.<br><br><b>• Conversation Persistence:</b> Active conversation data can be synchronized with local browser storage, allowing previously generated messages and customized responses to remain available after page refreshes.<br><b>• Message Identification:</b> Every rendered message is assigned a unique internal identifier, allowing individual messages to be edited, copied, or manipulated without affecting neighboring conversation nodes.<br><b>• State Synchronization:</b> Changes performed through editing, custom-answer replacement, or message deletion are immediately reflected within the active interface state.<br><b>• Session Isolation:</b> Account-specific conversation state is logically separated using the authenticated student identifier to prevent unrelated sessions from unintentionally sharing personalized conversation records.<br><br><b><font color='#D4AF37'>7. Context-Aware Academic Response Engine</font></b><br><i>Intent Recognition & Query Classification</i>: The assistant incorporates a lightweight classification pipeline that analyzes incoming prompts before selecting an appropriate response-generation pathway.<br><br><b>• Academic Detection:</b> Queries containing recognizable educational terminology are routed toward structured academic explanations covering mathematics, science, English, technology, history, and other learning domains.<br><b>• Mathematical Detection:</b> Expressions containing mathematical operators, numerical values, recognized functions, or equation-like structures are evaluated through the scientific math pipeline before conversational generation is attempted.<br><b>• Calendar Detection:</b> Requests containing dates, months, years, holidays, or calendar-related terminology are forwarded to the temporal processing subsystem.<br><b>• General Conversation:</b> Prompts that do not satisfy specialized detection rules fall back to the general conversational response framework.<br><br><b><font color='#D4AF37'>8. Academic Knowledge & General Knowledge Response Framework</font></b><br><i>Structured Educational Output</i>: The academic response subsystem transforms educational prompts into readable and logically organized explanations rather than returning isolated definitions or unsupported one-line answers.<br><br><b>• Definition Layer:</b> Recognized concepts begin with a concise definition that establishes the fundamental meaning of the requested term or principle.<br><b>• Explanation Layer:</b> The system expands the definition using accessible language and contextual relationships to improve conceptual understanding.<br><b>• Example Layer:</b> Practical or academic examples are incorporated whenever appropriate to connect abstract concepts with observable situations.<br><b>• Application Layer:</b> Where relevant, the assistant explains how a principle can be applied in mathematics, science, technology, everyday life, or academic problem-solving.<br><b>• Formatting Layer:</b> HTML-compatible elements such as bold emphasis, italic emphasis, paragraphs, and line breaks are utilized to improve readability within the ChatLeo interface.<br><br><b><font color='#D4AF37'>9. Typewriter Rendering & Progressive Response Animation</font></b><br><i>Progressive Text Rendering Architecture</i>: Assistant responses are rendered progressively through a controlled typewriter mechanism that reveals generated content incrementally instead of inserting the entire response simultaneously.<br><br><b>• Character-Level Rendering:</b> Response strings are incrementally inserted into the message container according to a controlled timing interval.<br><b>• HTML Preservation:</b> Structured HTML response elements are processed in a manner that preserves intended formatting such as paragraphs, bold text, italic text, and line breaks.<br><b>• Animation Cancellation:</b> Active typewriter timers are registered within the generation state and can be terminated when the user activates the stop-generation control.<br><b>• Completion Detection:</b> Once the final response segment has been rendered, the system automatically exits the generating state and restores normal message interaction controls.<br><br><b><font color='#D4AF37'>10. Responsive Interface & Adaptive Layout System</font></b><br><i>Responsive Design Architecture</i>: ChatLeo employs a responsive CSS architecture designed to maintain functional usability across desktop monitors, laptops, tablets, and mobile-sized displays.<br><br><b>• Adaptive Navigation:</b> Sidebar and navigation components automatically resize, collapse, or reposition according to available screen width.<br><b>• Fluid Chat Container:</b> The primary conversation area expands or contracts dynamically while maintaining readable message widths and consistent spacing.<br><b>• Mobile Optimization:</b> Touch-friendly controls, scalable input areas, and responsive message toolbars provide usable interaction on smaller screens.<br><b>• Grid Adaptation:</b> CSS Grid and Flexbox structures automatically reorganize interface components when viewport dimensions change.<br><b>• Viewport Compatibility:</b> The interface remains functional across common browser viewport dimensions without requiring separate mobile and desktop implementations.<br><br><b><font color='#D4AF37'>11. Accessibility-Oriented Interaction Layer</font></b><br><i>Interaction Accessibility</i>: The interface incorporates multiple interaction pathways to ensure that essential functions remain accessible across different input devices and interaction styles.<br><br><b>• Keyboard Compatibility:</b> Core input functionality supports standard keyboard interaction, including Enter-based message submission and conventional text-editing behavior.<br><b>• Touch Interaction:</b> Message controls and interface components support tapping and long-press interactions on touch-enabled devices.<br><b>• Native Tooltips:</b> HTML title attributes provide contextual descriptions for selected interactive controls and calendar metadata elements.<br><b>• Visual State Indicators:</b> Processing, success, editing, and cancellation states are represented through visible interface changes.<br><b>• Readable Hierarchy:</b> Typography, spacing, emphasis tags, and container separation establish clear distinctions between user prompts, assistant responses, system notifications, and interactive controls.<br><br><b><font color='#D4AF37'>12. Client-Side Error Handling & Recovery Framework</font></b><br><i>Controlled Exception Management</i>: ChatLeo implements defensive programming principles throughout its client-side subsystems. Potential failures involving malformed input, unavailable browser features, invalid mathematical expressions, corrupted stored data, or interrupted generation processes are handled through controlled fallback paths.<br><br><b>• Input Validation:</b> User-provided values are validated before specialized processing functions are executed.<br><b>• Storage Validation:</b> Browser storage values are parsed and verified before being incorporated into application state.<br><b>• Calculation Failure:</b> Invalid mathematical expressions return a controlled fallback result rather than exposing raw execution errors.<br><b>• Generation Recovery:</b> Interrupted response generation restores the send interface and clears active processing states.<br><b>• DOM Protection:</b> Interface operations verify the existence of required elements before attempting modifications.<br><br><b><font color='#D4AF37'>13. Student Profile & Personalization Framework</font></b><br><i>Dynamic User Identity Layer</i>: Following successful authentication, ChatLeo establishes a personalized interface context associated with the active student session.<br><br><b>• Preferred Name Integration:</b> A configured nickname or preferred username can be displayed within greetings, profile areas, and selected interface messages.<br><b>• Time-Aware Greetings:</b> Welcome messages dynamically adapt according to the current time period, producing contextually appropriate greetings such as morning, afternoon, or evening messages.<br><b>• Profile Badge:</b> The active account identity can be represented through a compact profile indicator within the primary interface.<br><b>• First-Session Configuration:</b> New users are presented with a dedicated personalization step before entering the customized assistant environment.<br><br><b><font color='#D4AF37'>14. Modular Application Architecture</font></b><br><i>Subsystem Separation</i>: The ChatLeo application is organized into functionally distinct modules responsible for authentication, calendar processing, holiday computation, mathematical evaluation, message management, response generation, personalization, and interface rendering.<br><br><b>• Authentication Module:</b> Manages account verification, session initialization, and profile state.<br><b>• Calendar Module:</b> Handles annual calendar construction, weekday calculations, leap-year processing, and holiday highlighting.<br><b>• Holiday Module:</b> Resolves fixed and floating observances from user-provided temporal expressions.<br><b>• Math Module:</b> Sanitizes and evaluates supported mathematical expressions through controlled computational pathways.<br><b>• Message Module:</b> Manages rendering, editing, copying, customization, and interaction controls for individual messages.<br><b>• Generation Module:</b> Controls processing states, progressive response animation, and cancellation behavior.<br><b>• Personalization Module:</b> Maintains student-specific interface preferences and contextual greetings.<br><br><b><font color='#D4AF37'>15. Security-Oriented Client Execution Model</font></b><br><i>Browser-Side Execution Philosophy</i>: ChatLeo v1.0-Advance is designed around a client-side execution model in which core interface logic, calculations, state transitions, and presentation operations occur directly within the user's browser environment.<br><br><b>• Reduced Server Dependency:</b> Core utility functions such as calendar generation and mathematical evaluation can operate without continuous server-side computation.<br><b>• Input Sanitization:</b> User-controlled mathematical expressions are normalized and validated before reaching computational execution pathways.<br><b>• Restricted Evaluation:</b> Only explicitly recognized mathematical functions, constants, operators, and numerical characters are permitted by the scientific evaluator.<br><b>• Local Session Storage:</b> Authentication and personalization state are maintained through browser-native storage mechanisms according to the application's session architecture.<br><br><b><font color='#D4AF37'>16. Version 1.0-advance Integration Summary</font></b><br><i>System-Level Improvements</i>: The v1.0 Advanced architecture consolidates conversational interaction, academic assistance, mathematical computation, temporal reasoning, student personalization, and responsive interface behavior into a unified browser-based environment.<br><br><b>• Temporal Intelligence:</b> Advanced annual calendar construction and holiday-resolution logic provide date-aware academic and productivity functionality.<br><b>• Computational Intelligence:</b> The scientific math evaluator provides controlled arithmetic, trigonometric, logarithmic, exponential, and constant-based calculations.<br><b>• Interaction Intelligence:</b> Message-level editing, copying, customization, generation cancellation, and progressive rendering provide granular user control over conversations.<br><b>• Academic Intelligence:</b> Structured response generation transforms general and educational prompts into organized explanations suitable for classroom-oriented use.<br><b>• Personalization Intelligence:</b> Authentication, persistent sessions, preferred naming, and contextual greetings create a personalized student assistant environment.<br><b>• Interface Intelligence:</b> Responsive layouts, animated processing states, adaptive grids, toolbars, and visual state transitions create a cohesive modern user experience.<br><br><i>Release Positioning</i>: ChatLeo Assistant v1.0 Advanced establishes a comprehensive foundation for a browser-native academic assistant by integrating computational utilities, temporal processing, personalized student interaction, and modular interface systems into a single cohesive application architecture. The beta designation indicates that the architecture is feature-complete for its current functional scope while remaining suitable for continued refinement, optimization, testing, and expansion in subsequent releases."
+    }
+  ];
+
+  // ENHANCED HOLIDAY DATA WITH SMART 2-PARAGRAPH DETAILS & LABELS
+  const HOLIDAYS = {
+    "01-01": {
+      name: "New Year's Day",
+      type: "Regular Holiday",
+      what: "New Year's Day marks the beginning of the civil calendar year and is celebrated globally as a time for fresh starts, family gatherings, and national optimism. As a national Regular Holiday in the Philippines under the Labor Code, workers who report to work on this day are entitled to receive 200% of their daily wage, while those who do not work still receive 100% of their basic pay.",
+      declared: "Established under official Philippine holiday legislation (such as Executive Order No. 292 or the Administrative Code of 1987), New Year's Day has long been institutionalized as a regular nationwide non-working holiday to allow citizens to partake in cultural and familial welcoming festivities."
+    },
+    "04-09": {
+      name: "Araw ng Kagitingan (Day of Valor)",
+      type: "Regular Holiday",
+      what: "Araw ng Kagitingan honors the brave Filipino and American soldiers who fought in the Battle of Bataan and endured the tragic Bataan Death March during World War II. It serves as a reminder of national resilience, patriotism, and sacrifice, observed as a Regular Holiday where working employees receive double pay (200%).",
+      declared: "Officially declared and designated as a regular holiday to commemorate the historic valor and defense of Bataan, maintaining solemn national remembrance services annually."
+    },
+    "05-01": {
+      name: "Labor Day",
+      type: "Regular Holiday",
+      what: "Labor Day is a national tribute to the hard work, sacrifices, and vital economic contributions of the Filipino workforce. Recognized as a nationwide Regular Holiday, it emphasizes labor rights and fair compensation, granting eligible employees 200% of their wage if they work or 100% pay if off.",
+      declared: "Formally institutionalized through Philippine labor laws and executive proclamations to honor the historic labor movement and uphold workers' rights nationwide."
+    },
+    "06-12": {
+      name: "Independence Day",
+      type: "Regular Holiday",
+      what: "Independence Day commemorates the historical declaration of Philippine independence from Spanish colonial rule on June 12, 1898, in Kawit, Cavite. As a major Regular Holiday, flag-raising ceremonies and patriotic events are held across the country, with standard 200% holiday pay rules applying to workers.",
+      declared: "Originally proclaimed by historical decree and permanently codified under modern Philippine holiday acts to celebrate the nation's hard-won sovereignty."
+    },
+    "08-21": {
+      name: "Ninoy Aquino Day",
+      type: "Special Non-Working Holiday",
+      what: "Ninoy Aquino Day commemorates the assassination of former Senator Benigno 'Ninoy' Aquino Jr. in 1983, a pivotal moment that sparked the restoration of democracy in the Philippines. As a Special Non-Working Day, the 'no work, no pay' principle applies unless company policy dictates otherwise, while those who do report for work earn an additional 30% premium on their basic daily rate.",
+      declared: "Enacted into law via Republic Act No. 9256, officially declaring August 21 of every year as a national special non-working holiday in honor of the late senator."
+    },
+    "11-01": {
+      name: "All Saints' Day",
+      type: "Special Non-Working Holiday",
+      what: "All Saints' Day, locally known as Undas, is a deeply rooted Catholic and cultural tradition where Filipinos visit cemeteries to honor, pray for, and remember departed loved ones. Designated as a Special Non-Working Holiday, employees who work receive a 30% wage premium over their regular rate.",
+      declared: "Set by national proclamations and regularized under the country's legal holiday framework to accommodate profound religious and family traditions."
+    },
+    "11-02": {
+      name: "All Souls' Day",
+      type: "Special Non-Working Holiday",
+      what: "All Souls' Day follows All Saints' Day as part of the Undas observances, dedicated specifically to praying for the souls of deceased relatives and friends. It is declared as a Special Non-Working Holiday to allow families sufficient time to gather in cemeteries and memorial parks.",
+      declared: "Included through special holiday executive orders to provide extended time for nationwide observance, reflection, and family travel."
+    },
+    "11-30": {
+      name: "Bonifacio Day",
+      type: "Regular Holiday",
+      what: "Bonifacio Day honors Andrés Bonifacio, the Supremo of the Katipunan and one of the founding fathers of the Philippine revolution against Spanish rule. As a nationwide Regular Holiday, employees who perform work on this day receive double daily pay (200%).",
+      declared: "Enacted legislatively to commemorate the birth anniversary of Andrés Bonifacio and recognize his monumental role in igniting the Philippine revolution."
+    },
+    "12-08": {
+      name: "Feast of the Immaculate Conception",
+      type: "Special Non-Working Holiday",
+      what: "This religious observance honors the Immaculate Conception of the Blessed Virgin Mary, who is recognized as the principal patroness of the Philippines. It is a Special Non-Working Holiday where reporting workers receive a 30% pay bonus above their standard rate.",
+      declared: "Added via special legislative enactment (Republic Act No. 10966) making it a nationwide special non-working holiday to honor the patroness of the country."
+    },
+    "12-24": {
+      name: "Christmas Eve",
+      type: "Special Non-Working Holiday",
+      what: "Christmas Eve is a cherished cultural tradition in the Philippines, marking the night of Noche Buena where families gather for feast and prayer. Declared as a Special Non-Working Day, it gives workers time to prepare and celebrate with loved ones.",
+      declared: "Regularly declared through annual presidential proclamations to enhance holiday season observance and family cohesion."
+    },
+    "12-25": {
+      name: "Christmas Day",
+      type: "Regular Holiday",
+      what: "Christmas Day celebrates the birth of Jesus Christ and is one of the most important religious and family holidays in the Philippines. It is classified as a national Regular Holiday, ensuring employees who work on December 25 receive 200% double pay.",
+      declared: "Embedded permanently as a regular national holiday within the national legal code reflecting the predominant cultural and religious traditions."
+    },
+    "12-30": {
+      name: "Rizal Day",
+      type: "Regular Holiday",
+      what: "Rizal Day marks the anniversary of the execution of Dr. José Rizal, the national hero of the Philippines, at Bagumbayan (now Rizal Park) in 1896. This Regular Holiday honors his literary works and peaceful struggle for reform, providing double pay (200%) to working staff.",
+      declared: "Initially decreed by General Emilio Aguinaldo in 1898 and subsequently institutionalized into law as an enduring national regular holiday."
+    },
+    "12-31": {
+      name: "Last Day of the Year",
+      type: "Special Non-Working Holiday",
+      what: "The Last Day of the Year is observed as a Special Non-Working Day to allow families to prepare for New Year's Eve festivities (Media Noche) and welcome the upcoming year safely together.",
+      declared: "Proclaimed annually as a special non-working holiday by executive action to round out the festive holiday season."
+    }
+  };
+
+  const MONTH_NAMES = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const HERO_ICONS = ["icon-star", "icon-flower", "icon-box", "icon-orbit", "icon-lightning"];
+  const SVG_PATHS = [
+    "M12 0L14.59 8.41L23 11L14.59 13.59L12 22L9.41 13.59L1 11L9.41 8.41L12 0Z",
+    "M12,2 C10.34,2 9,3.34 9,5 C9,5.78 9.3,6.49 9.79,7.03 C8.42,6.38 6.74,6.65 5.64,7.76 C4.27,9.13 4.27,11.34 5.64,12.71 C6.32,13.39 7.21,13.73 8.1,13.73 C8.73,13.73 9.36,13.56 9.91,13.21 C9.26,14.58 9.53,16.26 10.64,17.36 C12.01,18.73 14.22,18.73 15.59,17.36 C16.27,16.68 16.61,15.79 16.61,14.9 C16.61,14.27 16.44,13.64 15.09,13.09 C17.46,13.74 19.14,13.47 20.24,12.36 C21.61,10.99 21.61,8.78 20.24,7.41 C19.56,6.73 18.67,6.39 17.78,6.39 C17.15,6.39 16.52,6.56 15.97,6.91 C16.62,5.54 16.35,3.86 15.24,2.76 C14.36,1.88 13.18,1.6 12.08,1.87 L12,2 Z",
+    "M12 1L2 6v12l10 5 10-5V6L12 1zm0 2.2l6.8 3.4-2.8 1.4-6.8-3.4 2.8-1.4zM4.4 7.6l6.6 3.3v7.3L4.4 15V7.6zm8.6 10.6v-7.3l6.6-3.3V15l-6.6 3.2z",
+    "M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm4-8a4 4 0 1 1-4-4 4 4 0 0 1 4 4z",
+    "M7 2v11h3v9l7-12h-4l4-8z"
+  ];
+
+  const SVG_COPY = `<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
+  const SVG_CHECK = `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
+  const SVG_EDIT = `<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`;
+
+  let activeAccount = null;
+  let isGenerating = false;
+  let currentProcessTimeout = null;
+  let currentTypeTimeout = null;
+  let currentScrollInterval = null;
+  let activeBotMsgDiv = null;
+
+  const log = document.getElementById('log');
+  const input = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const sendSvg = document.getElementById('sendSvg');
+  const stopSvg = document.getElementById('stopSvg');
+
+  const signInModalBtn = document.getElementById('signInModalBtn');
+  const userProfile = document.getElementById('userProfile');
+  const headerUsername = document.getElementById('headerUsername');
+  const signOutBtn = document.getElementById('signOutBtn');
+
+  const loginModal = document.getElementById('loginModal');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const loginForm = document.getElementById('loginForm');
+  const loginUsername = document.getElementById('loginUsername');
+  const loginPassword = document.getElementById('loginPassword');
+  const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+  const eyeIcon = document.getElementById('eyeIcon');
+  const loginError = document.getElementById('loginError');
+  const loginNotice = document.getElementById('loginNotice');
+
+  const displayNameModal = document.getElementById('displayNameModal');
+  const displayNameForm = document.getElementById('displayNameForm');
+  const preferredName = document.getElementById('preferredName');
+
+  // =========================================================
+  // SCIENTIFIC MATH EVALUATOR
+  // =========================================================
+  function evalScientificMath(expr) {
+    try {
+      let clean = expr.toLowerCase()
+        .replace(/π|pi/g, 'Math.PI')
+        .replace(/e/g, 'Math.E')
+        .replace(/sin\(/g, 'Math.sin(')
+        .replace(/cos\(/g, 'Math.cos(')
+        .replace(/tan\(/g, 'Math.tan(')
+        .replace(/sqrt\(/g, 'Math.sqrt(')
+        .replace(/log\(/g, 'Math.log10(')
+        .replace(/ln\(/g, 'Math.log(')
+        .replace(/abs\(/g, 'Math.abs(')
+        .replace(/\^/g, '**');
+
+      if (!/^[0-9+\-*/().\sMathPIEsincostanlogsqrtlnab]*$/.test(clean)) {
+        return null;
+      }
+      
+      let res = Function('"use strict"; return (' + clean + ')')();
+      if (typeof res === 'number' && !isNaN(res)) {
+        return res;
+      }
+    } catch(e) {
+      return null;
+    }
+    return null;
+  }
+
+  // Calculate Last Monday of August
+  function getLastMondayOfAugust(year) {
+    let date = new Date(year, 7, 31);
+    while (date.getDay() !== 1) { // 1 = Monday
+      date.setDate(date.getDate() - 1);
+    }
+    return date.getDate();
+  }
+
+  // SMART HOLIDAY RESOLVER WITH FORMATTED PARAGRAPHS & LABELS
+  function resolveHolidayForDate(month, day, year) {
+    const key = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    
+    if (month === 8) {
+      const lastMon = getLastMondayOfAugust(year);
+      if (day === lastMon) {
+        return {
+          name: "National Heroes Day",
+          type: "Regular Holiday",
+          what: "National Heroes Day is a national Regular Holiday in the Philippines celebrated on the last Monday of August to honor the courage, patriotism, and contributions of all Filipino heroes—both named historical figures like Andrés Bonifacio and Jose Rizal, as well as unsung heroes who fought for national sovereignty.",
+          declared: "Rooted in Act No. 3827 and updated by Republic Act No. 9492, this day commemorates the Cry of Pugad Lawin that ignited the 1896 Philippine Revolution against Spanish colonial rule, ensuring that employees who report for work on this holiday earn 200% double pay under Labor Department regulations while non-working employees receive 100% full wage."
+        };
+      }
+    }
+
+    if (HOLIDAYS[key]) {
+      return HOLIDAYS[key];
+    }
+
+    return null;
+  }
+
+  // =========================================================
+  // ENHANCED TIME, DATE, CALENDAR & HOLIDAY ENGINE
+  // =========================================================
+  function processDateTimeQuery(query) {
+    const raw = query.toLowerCase();
+    const q = raw.replace(/[^\w\s]/gi, ' ').trim();
+    const now = new Date();
+
+    const isHolidayQuery = raw.includes("holiday") || raw.includes("pista");
+    const monthRegex = /(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sep|october|oct|november|nov|december|dec)/i;
+    const monthMatch = raw.match(monthRegex);
+    
+    if (isHolidayQuery || monthMatch) {
+      let targetMonth = now.getMonth() + 1;
+      let targetDay = now.getDate();
+      let targetYear = now.getFullYear();
+
+      if (monthMatch) {
+        const mStr = monthMatch[1].toLowerCase();
+        const monthMap = {
+          january: 1, jan: 1, february: 2, feb: 2, march: 3, mar: 3, april: 4, apr: 4,
+          may: 5, june: 6, jun: 6, july: 7, jul: 7, august: 8, aug: 8, september: 9, sep: 9,
+          october: 10, oct: 10, november: 11, nov: 11, december: 12, dec: 12
+        };
+        targetMonth = monthMap[mStr];
+
+        const dayMatch = raw.match(/\b([1-9]|[12][0-9]|3[01])\b/);
+        if (dayMatch) targetDay = parseInt(dayMatch[1]);
+
+        const yearMatch = raw.match(/\b(20\d{2})\b/);
+        if (yearMatch) targetYear = parseInt(yearMatch[1]);
+      }
+
+      if (isHolidayQuery) {
+        const holiday = resolveHolidayForDate(targetMonth, targetDay, targetYear);
+        if (holiday) {
+          return `<p>The holiday on ${MONTH_NAMES[targetMonth - 1]} ${targetDay}, ${targetYear} is <b>${holiday.name}</b> (${holiday.type}).</p>` +
+                 `<p><b>What's this holiday:</b> ${holiday.what}</p>` +
+                 `<p><b>When it Declared:</b> ${holiday.declared}</p>`;
+        } else if (monthMatch) {
+          return `<p>There is no declared regular or special national holiday listed for <b>${MONTH_NAMES[targetMonth - 1]} ${targetDay}, ${targetYear}</b>.</p>`;
+        }
+      }
+    }
+
+    const isDateQuery = (
+      q.includes("date") || 
+      q.includes("petsa") || 
+      q.includes("today") || 
+      q.includes("ngayon") || 
+      q.includes("day") || 
+      q.includes("araw")
+    ) && !q.includes("time") && !q.includes("oras") && !q.includes("calendar") && !q.includes("kalendaryo");
+
+    if (isDateQuery) {
+      const formatted = `${MONTH_NAMES[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+      return `<p><b>Today's Date:</b> ${formatted} (${now.toLocaleDateString('en-US', { weekday: 'long' })})</p>`;
+    }
+
+    if (q.includes("time") || q.includes("oras")) {
+      return `<p><b>Current Time:</b> ${now.toLocaleTimeString()}</p>`;
+    }
+
+    if (q.includes("year") || q.includes("taon")) {
+      return `<p><b>Current Year:</b> ${now.getFullYear()}</p>`;
+    }
+
+    if (q.includes("month") || q.includes("buwan")) {
+      return `<p><b>Current Month:</b> ${MONTH_NAMES[now.getMonth()]}</p>`;
+    }
+
+    if (isHolidayQuery) {
+      const hToday = resolveHolidayForDate(now.getMonth() + 1, now.getDate(), now.getFullYear());
+      if (hToday) {
+        return `<p>The holiday today is <b>${hToday.name}</b> (${hToday.type}).</p>` +
+               `<p><b>What's this holiday:</b> ${hToday.what}</p>` +
+               `<p><b>When it Declared:</b> ${hToday.declared}</p>`;
+      } else {
+        return `<p>There is no major national holiday listed for today (${MONTH_NAMES[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}).</p>`;
+      }
+    }
+
+    const calendarMatch = q.match(/(?:calendar|kalendaryo)\s*(\d{4})?/);
+    if (calendarMatch) {
+      let year = calendarMatch[1] ? parseInt(calendarMatch[1]) : now.getFullYear();
+      if (year < 1975 || year > 2050) {
+        return `<p><b>Calendar Error:</b> Supported year range is strictly from <b>1975 to 2050</b>.</p>`;
+      }
+      return generateComprehensiveYearCalendar(year);
+    }
+
+    return null;
+  }
+
+  // COMPREHENSIVE, LARGE, WELL-DESIGNED CALENDAR UI GENERATOR
+  function generateComprehensiveYearCalendar(year) {
+    let html = `<div style="margin-top: 10px; width: 100%;">`;
+    html += `<h3 style="color: var(--luna-primary); text-align: center; margin-bottom: 16px; font-size: 20px;">Comprehensive Annual Calendar — ${year}</h3>`;
+    html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">`;
+
+    for (let m = 0; m < 12; m++) {
+      const firstDay = new Date(year, m, 1).getDay();
+      const totalDays = new Date(year, m + 1, 0).getDate();
+
+      html += `<div style="background: rgba(13, 15, 29, 0.7); border: 1px solid var(--luna-border); border-radius: 12px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">`;
+      html += `<div style="text-align: center; font-weight: bold; color: var(--luna-secondary); margin-bottom: 10px; font-size: 16px; border-bottom: 1px solid var(--luna-border); padding-bottom: 6px;">${MONTH_NAMES[m]} ${year}</div>`;
+      html += `<div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; font-weight: bold; color: var(--luna-accent); margin-bottom: 6px;">`;
+      ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].forEach(d => {
+        html += `<div>${d}</div>`;
+      });
+      html += `</div>`;
+
+      html += `<div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 13px; gap: 4px;">`;
+      
+      // Empty padding cells for preceding days
+      for (let i = 0; i < firstDay; i++) {
+        html += `<div style="padding: 6px; color: transparent;"></div>`;
+      }
+
+      // Day cells
+      for (let day = 1; day <= totalDays; day++) {
+        const holidayCheck = resolveHolidayForDate(m + 1, day, year);
+        const isHoliday = holidayCheck !== null;
+        
+        let cellStyle = "padding: 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center;";
+        if (isHoliday) {
+          cellStyle += " background: rgba(239, 68, 68, 0.2); border: 1px solid var(--error); color: #fca5a5; font-weight: bold;";
+        } else {
+          cellStyle += " background: rgba(255, 255, 255, 0.03); color: var(--luna-text-main);";
+        }
+
+        const tooltipAttr = isHoliday ? ` title="${holidayCheck.name} (${holidayCheck.type})" style="cursor: pointer;"` : "";
+        html += `<div style="${cellStyle}"${tooltipAttr}>${day}</div>`;
+      }
+
+      html += `</div></div>`;
+    }
+
+    html += `</div></div>`;
+    return html;
+  }
+
+  function getTimeBasedGreeting() {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good morning";
+    if (hour >= 12 && hour < 18) return "Good afternoon";
+    return "Good evening";
+  }
+
+  function setDynamicContent() {
+    const timeGreeting = getTimeBasedGreeting();
+    const namePart = activeAccount ? `, ${activeAccount.displayName || activeAccount.username}` : "";
+    
+    const dynamicHeadings = [
+      `${timeGreeting}${namePart}! What's on our agenda today?`,
+      `${timeGreeting}${namePart}! Need help in logging?`,
+      `${timeGreeting}${namePart}! Ask ChatLeo everything!`,
+      `${timeGreeting}${namePart}! Ready for today's lesson?`,
+      `${timeGreeting}${namePart}! How can ChatLeo assist your studies today?`
+    ];
+
+    const heading = document.getElementById('greetingHeading');
+    const randomIndex = Math.floor(Math.random() * dynamicHeadings.length);
+    heading.textContent = dynamicHeadings[randomIndex];
+
+    HERO_ICONS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+
+    const chosenIconId = HERO_ICONS[randomIndex];
+    const iconEl = document.getElementById(chosenIconId);
+    if (iconEl) {
+      iconEl.style.display = 'block';
+    }
+  }
+
+  function setGeneratingState(generating) {
+    isGenerating = generating;
+    if (generating) {
+      sendBtn.classList.add('is-generating');
+      sendSvg.style.display = 'none';
+      stopSvg.style.display = 'block';
+      input.disabled = true;
+    } else {
+      sendBtn.classList.remove('is-generating');
+      sendSvg.style.display = 'block';
+      stopSvg.style.display = 'none';
+      input.disabled = false;
+      input.focus();
+    }
+  }
+
+  function stopGeneration() {
+    if (currentProcessTimeout) clearTimeout(currentProcessTimeout);
+    if (currentTypeTimeout) clearTimeout(currentTypeTimeout);
+    if (currentScrollInterval) clearInterval(currentScrollInterval);
+
+    const procBox = document.querySelector('.processing-box');
+    if (procBox) procBox.remove();
+
+    if (activeBotMsgDiv) {
+      activeBotMsgDiv.remove();
+      activeBotMsgDiv = null;
+    }
+
+    setGeneratingState(false);
+  }
+
+  togglePasswordBtn.addEventListener('click', () => {
+    const isPassword = loginPassword.getAttribute('type') === 'password';
+    loginPassword.setAttribute('type', isPassword ? 'text' : 'password');
+    
+    if (isPassword) {
+      eyeIcon.innerHTML = `<path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.17c0-1.66-1.34-3-3-3l-.17.02z"/>`;
+    } else {
+      eyeIcon.innerHTML = `<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>`;
+    }
+  });
+
+  function checkSession() {
+    const savedAcc = localStorage.getItem('chatleo_account');
+    if (savedAcc) {
+      activeAccount = JSON.parse(savedAcc);
+      updateUIForLoggedInUser();
+    } else {
+      updateUIForLoggedOutUser();
+    }
+  }
+
+  function updateUIForLoggedInUser() {
+    headerUsername.textContent = activeAccount.displayName || activeAccount.username;
+    userProfile.style.display = 'flex';
+    signInModalBtn.style.display = 'none';
+    setDynamicContent();
+  }
+
+  function updateUIForLoggedOutUser() {
+    userProfile.style.display = 'none';
+    signInModalBtn.style.display = 'block';
+    setDynamicContent();
+  }
+
+  function openSignInModal(showNotice = false) {
+    loginNotice.style.display = showNotice ? 'block' : 'none';
+    loginError.style.display = 'none';
+    loginModal.classList.add('active');
+  }
+
+  function closeSignInModal() {
+    loginModal.classList.remove('active');
+    loginForm.reset();
+  }
+
+  signInModalBtn.addEventListener('click', () => openSignInModal(false));
+  closeModalBtn.addEventListener('click', closeSignInModal);
+
+  // UNTOUCHED DEFAULT LOGIN VALIDATION SYSTEM
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const uVal = loginUsername.value.trim();
+    const pVal = loginPassword.value.trim();
+
+    const matchedUser = USER_DATABASE.find(user => 
+      user.username.toLowerCase() === uVal.toLowerCase() && user.password === pVal
+    );
+
+    if (matchedUser) {
+      loginError.style.display = 'none';
+      closeSignInModal();
+      
+      const savedAcc = localStorage.getItem('chatleo_account');
+      if (savedAcc) {
+        const parsed = JSON.parse(savedAcc);
+        if (parsed.username.toLowerCase() === matchedUser.username.toLowerCase() && parsed.displayName) {
+          activeAccount = parsed;
+          updateUIForLoggedInUser();
+          return;
+        }
+      }
+
+      preferredName.value = matchedUser.username.split(' ')[0];
+      displayNameModal.classList.add('active');
+      activeAccount = matchedUser;
+    } else {
+      loginError.style.display = 'block';
+    }
+  });
+
+  displayNameForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const pName = preferredName.value.trim();
+    if (pName) {
+      activeAccount.displayName = pName;
+      localStorage.setItem('chatleo_account', JSON.stringify(activeAccount));
+      displayNameModal.classList.remove('active');
+      updateUIForLoggedInUser();
+    }
+  });
+
+  signOutBtn.addEventListener('click', () => {
+    localStorage.removeItem('chatleo_account');
+    activeAccount = null;
+    updateUIForLoggedOutUser();
+  });
+
+  function scrollToBottom() {
+    const mainView = document.getElementById('mainView');
+    mainView.scrollTop = mainView.scrollHeight;
+  }
+
+  function createMessageActions(msgDiv, textContent, type) {
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'msg-actions';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'msg-btn';
+    copyBtn.title = "Copy";
+    copyBtn.innerHTML = SVG_COPY;
+    copyBtn.onclick = (e) => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(textContent).then(() => {
+        copyBtn.innerHTML = SVG_CHECK;
+        setTimeout(() => copyBtn.innerHTML = SVG_COPY, 1500);
+      });
+    };
+    actionsDiv.appendChild(copyBtn);
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'msg-btn';
+    editBtn.title = "Edit";
+    editBtn.innerHTML = SVG_EDIT;
+    editBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (type === 'user') {
+        input.value = textContent;
+        input.focus();
+      } else {
+        if (msgDiv.querySelector('.edit-area')) return;
+        const currentContent = msgDiv.querySelector('.msg-content').innerHTML;
+        const textarea = document.createElement('textarea');
+        textarea.className = 'edit-area';
+        textarea.value = currentContent;
+
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'edit-save-btn';
+        saveBtn.textContent = 'Save Custom Answer';
+        saveBtn.onclick = () => {
+          msgDiv.querySelector('.msg-content').innerHTML = textarea.value;
+          textarea.remove();
+          saveBtn.remove();
+        };
+
+        msgDiv.appendChild(textarea);
+        msgDiv.appendChild(saveBtn);
+      }
+    };
+    actionsDiv.appendChild(editBtn);
+
+    msgDiv.appendChild(actionsDiv);
+
+    let pressTimer;
+    msgDiv.addEventListener('touchstart', () => {
+      pressTimer = setTimeout(() => {
+        msgDiv.classList.add('touch-active');
+      }, 400);
+    }, {passive: true});
+
+    msgDiv.addEventListener('touchend', () => {
+      clearTimeout(pressTimer);
+    });
+
+    document.addEventListener('touchstart', (e) => {
+      if (!msgDiv.contains(e.target)) {
+        msgDiv.classList.remove('touch-active');
+      }
+    }, {passive: true});
+  }
+
+  function addMessage(text, type) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `msg ${type}`;
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'msg-content';
+
+    if (type === 'user') {
+      contentDiv.textContent = text;
+      msgDiv.appendChild(contentDiv);
+      createMessageActions(msgDiv, text, 'user');
+    } else {
+      contentDiv.innerHTML = text;
+      msgDiv.appendChild(contentDiv);
+      createMessageActions(msgDiv, contentDiv.innerText, 'bot');
+    }
+
+    log.appendChild(msgDiv);
+    scrollToBottom();
+    return msgDiv;
+  }
+
+  function findReply(inputStr) {
+    let dtResponse = processDateTimeQuery(inputStr);
+    if (dtResponse) return dtResponse;
+
+    let mathResult = evalScientificMath(inputStr);
+    if (mathResult !== null) {
+      return `<p><b>Scientific Result:</b> <code>${mathResult}</code></p>`;
+    }
+
+    const query = inputStr.toLowerCase().trim();
+    for (const item of GENERAL_KNOWLEDGE_BASE) {
+      if (item.keywords.some(kw => query.includes(kw))) {
+        return item.reply;
+      }
+    }
+
+    return `<p><b>General Knowledge:</b></p><p>You searched for: <b><i>"${escapeHTML(inputStr)}"</i></b>.</p><p>Sorry I cannot find the match response for your question.</p>`;
+  }
+
+  function escapeHTML(str) {
+    return str.replace(/[&<>"']/g, function(m) {
+      return {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      }[m];
+    });
+  }
+
+  function startProcessingAnimation(onComplete) {
+    const randomSvgPath = SVG_PATHS[Math.floor(Math.random() * SVG_PATHS.length)];
+
+    const processDiv = document.createElement('div');
+    processDiv.className = 'processing-box';
+    processDiv.innerHTML = `
+      <div class="processing-icon-wrap">
+        <svg class="spin-3d-instant" style="width:20px;height:20px;" viewBox="0 0 24 24">
+          <path fill="var(--luna-primary)" d="${randomSvgPath}"/>
+        </svg>
+      </div>
+      <span class="processing-text animated-dots">Thinking</span>
+    `;
+
+    log.appendChild(processDiv);
+    scrollToBottom();
+
+    currentProcessTimeout = setTimeout(() => {
+      processDiv.remove();
+      if (onComplete) onComplete();
+    }, 5000);
+  }
+
+  function typeBotReply(htmlReply) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'msg bot';
+    activeBotMsgDiv = msgDiv;
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'msg-content';
+    msgDiv.appendChild(contentDiv);
+
+    log.appendChild(msgDiv);
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlReply;
+
+    function revealNodes(parentTarget, sourceNode, delay) {
+      let currentDelay = delay;
+
+      Array.from(sourceNode.childNodes).forEach((node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const words = node.textContent.split(/(\s+)/);
+          words.forEach((word) => {
+            if (word.trim().length > 0) {
+              const span = document.createElement('span');
+              span.className = 'ai-word';
+              span.textContent = word;
+              span.style.animationDelay = `${currentDelay}ms`;
+              parentTarget.appendChild(span);
+              currentDelay += 30;
+            } else if (word) {
+              parentTarget.appendChild(document.createTextNode(word));
+            }
+          });
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const newElem = document.createElement(node.tagName);
+          Array.from(node.attributes).forEach(attr => newElem.setAttribute(attr.name, attr.value));
+          parentTarget.appendChild(newElem);
+          currentDelay = revealNodes(newElem, node, currentDelay);
+        }
+      });
+
+      return currentDelay;
+    }
+
+    const totalDelay = revealNodes(contentDiv, tempDiv, 0);
+
+    currentTypeTimeout = setTimeout(() => {
+      createMessageActions(msgDiv, contentDiv.innerText, 'bot');
+      activeBotMsgDiv = null;
+      setGeneratingState(false);
+    }, totalDelay + 100);
+
+    currentScrollInterval = setInterval(scrollToBottom, 60);
+    setTimeout(() => clearInterval(currentScrollInterval), totalDelay + 300);
+  }
+
+  function handleSendOrStop() {
+    if (isGenerating) {
+      stopGeneration();
+      return;
+    }
+
+    const text = input.value.trim();
+    if (!text) return;
+
+    if (!activeAccount) {
+      openSignInModal(true);
+      return;
+    }
+
+    addMessage(text, 'user');
+    input.value = '';
+    setGeneratingState(true);
+
+    startProcessingAnimation(() => {
+      const reply = findReply(text);
+      typeBotReply(reply);
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    checkSession();
+    input.focus();
+
+    sendBtn.addEventListener('click', handleSendOrStop);
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !isGenerating) {
+        handleSendOrStop();
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

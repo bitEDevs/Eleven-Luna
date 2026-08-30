@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Eleven Luna</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+
+    <!-- UPPER RIGHT ENTER PIN BUTTON -->
+    <button class="top-pin-btn" onclick="openPinModal()">Enter PIN</button>
+
+    <!-- 1. FULL-PAGE LOADING SCREEN -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader-container">
+            <div class="spinner-ring"></div>
+            <img src="734101338_122102775789371458_4932560908103581813_n.jpg" alt="Antonio Luna" class="loader-luna-face">
+            <h2 class="loader-text">LOADING</h2>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+        </div>
+    </div>
+
+    <!-- BACKGROUND OVERLAY LAYER -->
+    <div class="bg-gradient"></div>
+
+    <!-- LOGO -->
+    <div class="logo">
+        <img class="logo1" src="734101338_122102775789371458_4932560908103581813_n.jpg" alt="Luna Logo">
+    </div>
+
+    <!-- NEED HELP BUTTON -->
+    <button class="help-btn" onclick="askAI()">
+        <img src="faq.png" alt="?" class="help-icon">
+        <span>Need Help?</span>
+    </button>
+
+    <!-- HERO MAIN CONTAINER -->
+    <div class="hero-container">
+        <h1 class="welcome-title">WELCOME</h1>
+        
+        <!-- BUTTON WITH SHIMMER TEXT -->
+        <button class="signIn" id="signIn">
+            <span class="shimmer-text">Enter Classroom</span>
+        </button>
+
+        <h3 class="subtitle">Only eligible students of <span>ELEVEN LUNA</span> shall be allowed to continue — Be part of our Family now, Sign In through your registered account given by your developer.</h3>
+    </div>
+
+    <!-- HELLO GREETING OVERLAY -->
+    <div class="hello-text" id="helloText">Please wait...</div>
+
+    <!-- SIGN IN MODAL WRAPPER -->
+    <div class="wrapper" id="wrapper">
+        <button class="close" id="close">&times;</button>
+        <h2 class="modal-title">SIGN IN</h2>
+        <p class="modal-subtext">Please supply the required details.<br>Your personal details will be used solely for verification processes in compliance with Republic Act 10173 or the Data Privacy Act of 2012.</p>
+        
+        <!-- FLOATING PLACEHOLDER INPUTS -->
+        <div class="input-group">
+            <input class="input-control" id="username" type="text" placeholder=" " required autocomplete="off">
+            <label for="username" class="floating-label">Username</label>
+        </div>
+
+        <div class="input-group">
+            <input class="input-control" id="password" type="password" placeholder=" " required>
+            <label for="password" class="floating-label">Password</label>
+        </div>
+
+        <span class="error-Msg" id="error-Msg" style="display:none;">Invalid username or password. Please try again!</span>
+
+        <!-- CENTERED RECAPTCHA CONTAINER -->
+        <div class="recaptcha-center-wrapper">
+            <div class="g-recaptcha" data-sitekey="6Lc61ZwtAAAAAGM9EU9hojAadHiu7lZelL8pGrOA" data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaExpired"></div>
+        </div>
+
+        <h6 class="secret-key-note">Your secret key shall be provided by the developer</h6>
+        <button class="signIn-sub" id="signIn-sub">Confirm</button>
+    </div>
+
+    <!-- PERSONALIZED SETUP WRAPPER (8-DIGIT SETUP) -->
+    <div class="pin-wrapper" id="pin-setup-modal">
+        <button class="close-btn" onclick="closePinModals()">&times;</button>
+        <h3>CREATE YOUR 8-DIGIT PIN</h3>
+        <p>Set a personalized password for this device to gain direct access.</p>
+
+        <div class="pin-label-text">Enter 8-Digit PIN</div>
+        <div class="pin-box-group" id="setup-pin-group">
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+        </div>
+
+        <div class="pin-label-text">Confirm 8-Digit PIN</div>
+        <div class="pin-box-group" id="confirm-pin-group">
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+        </div>
+
+        <div class="pin-error" id="setup-error">PINs do not match or are incomplete!</div>
+        <button class="pin-confirm-btn" onclick="savePersonalizedPin()">Save PIN & Continue</button>
+    </div>
+
+    <!-- PIN LOGIN WRAPPER (EXISTS ON DEVICE) -->
+    <div class="pin-wrapper" id="pin-login-modal">
+        <button class="close-btn" onclick="closePinModals()">&times;</button>
+        <h3>ENTER DEVICE PIN</h3>
+        <p>Input your registered 8-digit passcode to unlock classroom.</p>
+
+        <div class="pin-label-text" style="text-align: center;">8-Digit Passcode</div>
+        <div class="pin-box-group" id="login-pin-group">
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+            <input type="password" inputmode="numeric" maxlength="1" class="pin-box" />
+        </div>
+
+        <div class="pin-error" id="login-error">Incorrect PIN. Please try again.</div>
+        <button class="pin-confirm-btn" onclick="verifyDevicePin()">Confirm PIN</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification - Email</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --luna-bg: #0d0f1d;
+            --luna-card-bg: rgba(22, 27, 46, 0.85);
+            --luna-primary: #a78bfa;
+            --luna-secondary: #c084fc;
+            --luna-accent: #fef08a;
+            --luna-text-main: #f3f4f6;
+            --luna-text-muted: #9ca3af;
+            --luna-border: rgba(167, 139, 250, 0.25);
+            --luna-glow: rgba(167, 139, 250, 0.4);
+        }
+
+        body {
+            background-color: var(--luna-bg);
+            color: var(--luna-text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background-color: #000000;
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #070a12;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+
+        .loading-screen.hide-loader {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .spinner-ring {
+            width: 90px;
+            height: 90px;
+            border: 3px solid rgba(212, 175, 55, 0.15);
+            border-top: 3px solid #d4af37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: -5px;
+        }
+
+        .loader-luna-face {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #d4af37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .loader-text {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: #d4af37;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 160px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #d4af37, #f59e0b);
+            animation: loadProgress 1.2s ease-in-out infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes loadProgress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .text {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .text h1 { font-size: clamp(22px, 5vw, 34px); margin-bottom: 10px; }
+        .text h2 { font-size: clamp(14px, 3.5vw, 18px); font-weight: 400; color: var(--luna-text-muted); }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+            width: 100%;
+        }
+
+        .input-control {
+            width: 100%;
+            max-width: 320px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 16px 14px 6px 14px;
+            font-size: 18px;
+            color: #ffffff;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .floating-label {
+            position: absolute;
+            left: calc(50% - 145px);
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #94a3b8;
+            pointer-events: none;
+            transition: all 0.25s ease;
+        }
+
+        .input-control:focus ~ .floating-label,
+        .input-control:not(:placeholder-shown) ~ .floating-label {
+            top: 8px;
+            transform: translateY(0);
+            font-size: 11px;
+            font-weight: 700;
+            color: #d4af37;
+        }
+
+        .input-control:focus {
+            border-color: #d4af37;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
+        }
+
+        .verify-Sub {
+            display: block;
+            margin: 30px auto 0 auto;
+            font-size: 16px;
+            font-weight: 800;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            background: #0f172a;
+            padding: 14px 42px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            color: #fff;
+        }
+
+        .verify-Sub:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .shimmer-text {
+            background: linear-gradient(90deg, #d4af37 0%, #ffffff 50%, #d4af37 100%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            display: inline-block;
+            animation: shimmerSlowFast 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        .wrapper {
+            display: flex;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background: var(--luna-card-bg);
+            padding: 30px 20px;
+            width: 90%;
+            max-width: 450px;
+            border-radius: 24px;
+            border: 1px solid var(--luna-border);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            backdrop-filter: blur(16px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .wrapper.show-wrapper {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .label {
+            font-size: clamp(20px, 5vw, 26px);
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .email {
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--luna-accent);
+            font-weight: 800;
+            word-break: break-all;
+        }
+
+        .resend-box {
+            margin: 15px 0;
+            font-size: 14px;
+            color: var(--luna-text-muted);
+        }
+
+        .resend {
+            font-weight: 700;
+            border: none;
+            background: transparent;
+            color: #a78bfa;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .signIn-sub {
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .signIn-sub:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #4b5563;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader-container">
+            <div class="spinner-ring"></div>
+            <img src="734101338_122102775789371458_4932560908103581813_n.jpg" alt="Logo" class="loader-luna-face">
+            <h2 class="loader-text" id="loader-label">PLEASE WAIT</h2>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast-notification"></div>
+
+    <!-- Main View -->
+    <div id="login-view" style="width: 100%; max-width: 420px;">
+        <div class="text">
+            <h1>EMAIL VERIFICATION</h1>
+            <h2>Please supply your valid email here</h2>
+        </div>
+
+        <div class="input-group">
+            <input class="input-control" id="input-email" type="email" placeholder=" " autocomplete="off" required>
+            <label class="floating-label">Email</label>
+        </div>
+
+        <button class="verify-Sub" id="signIn" disabled onclick="sendOTP()">
+            <span class="shimmer-text">Send OTP</span>
+        </button>
+    </div>
+
+    <!-- OTP Modal -->
+    <div class="wrapper" id="wrapper">
+        <label class="label">Verify OTP</label>
+        <h3>We've sent a 6-digit OTP to:<br><span class="email" id="display-email">...</span></h3>
+        
+        <div class="input-group" style="margin-top: 20px;">
+            <input class="input-control" id="input-code" type="text" maxlength="6" placeholder=" " style="text-align: center;" autocomplete="off">
+            <label class="floating-label" style="left: calc(50% - 145px);">Enter 6-Digit OTP</label>
+        </div>
+
+        <div class="resend-box">
+            Didn't receive code? <button class="resend" id="resend" disabled onclick="resendOTP()">Resend</button>
+            <span id="timer"></span>
+        </div>
+
+        <button class="signIn-sub" id="submit-Code" disabled onclick="verifyOTP()">Submit</button>
+    </div>
+
+<script>
+    const emailInput = document.getElementById('input-email');
+    const sendBtn = document.getElementById('signIn');
+    const otpInput = document.getElementById('input-code');
+    const submitBtn = document.getElementById('submit-Code');
+    const resendBtn = document.getElementById('resend');
+    const displayEmail = document.getElementById('display-email');
+    const wrapper = document.getElementById('wrapper');
+    const loadingScreen = document.getElementById('loading-screen');
+    const toast = document.getElementById('toast');
+
+    let countdownTimer;
+    let toastTimeout;
+
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            loadingScreen.classList.add('hide-loader');
+        }, 800);
+    });
+
+    function showToast(message) {
+        clearTimeout(toastTimeout);
+        toast.textContent = message;
+        toast.classList.add('show');
+        toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    emailInput.addEventListener('input', () => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        sendBtn.disabled = !emailRegex.test(emailInput.value.trim());
+    });
+
+    otpInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        submitBtn.disabled = e.target.value.length !== 6;
+    });
+
+    async function sendOTP() {
+        const email = emailInput.value.trim();
+        sendBtn.disabled = true;
+
+        try {
+            const res = await fetch('/api/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                displayEmail.textContent = email;
+                wrapper.classList.add('show-wrapper');
+                startResendTimer(120);
+            } else {
+                showToast(data.message || "Error 1009");
+                sendBtn.disabled = false;
+            }
+        } catch (err) {
+            showToast("Error 204");
+            sendBtn.disabled = false;
+        }
+    }
+
+    async function verifyOTP() {
+        const email = emailInput.value.trim();
+        const otp = otpInput.value.trim();
+
+        try {
+            const res = await fetch('/api/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                loadingScreen.classList.remove('hide-loader');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            } else {
+                showToast(data.message || "Error 203");
+            }
+        } catch (err) {
+            showToast("Error 401");
+        }
+    }
+
+    function resendOTP() { sendOTP(); }
+
+    function startResendTimer(seconds) {
+        resendBtn.disabled = true;
+        let timeLeft = seconds;
+        clearInterval(countdownTimer);
+
+        countdownTimer = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            document.getElementById('timer').textContent = `(${minutes}:${secs < 10 ? '0' : ''}${secs})`;
+
+            if (timeLeft <= 0) {
+                clearInterval(countdownTimer);
+                document.getElementById('timer').textContent = '';
+                resendBtn.disabled = false;
+            }
+            timeLeft--;
+        }, 1000);
+    }
+</script>
+</body>
+</html>

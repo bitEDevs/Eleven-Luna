@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Classroom</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --luna-bg: #0d0f1d;
+            --luna-card-bg: rgba(22, 27, 46, 0.85);
+            --luna-primary: #a78bfa;
+            --luna-secondary: #c084fc;
+            --luna-accent: #fef08a;
+            --luna-text-main: #f3f4f6;
+            --luna-text-muted: #9ca3af;
+            --luna-border: rgba(167, 139, 250, 0.25);
+            --luna-glow: rgba(167, 139, 250, 0.4);
+        }
+
+        body {
+            background-color: var(--luna-bg);
+            color: var(--luna-text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #070a12;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+
+        .loading-screen.hide-loader {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .spinner-ring {
+            width: 90px;
+            height: 90px;
+            border: 3px solid rgba(212, 175, 55, 0.15);
+            border-top: 3px solid #d4af37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            position: absolute;
+        }
+
+        .loader-luna-face {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #d4af37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .loader-text {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: #d4af37;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 160px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #d4af37, #f59e0b);
+            animation: loadProgress 1.2s ease-in-out infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes loadProgress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Welcome Overlay Header */
+        .Header {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            font-size: clamp(32px, 8vw, 80px);
+            font-weight: 900;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 101;
+            display: none;
+            background: linear-gradient(90deg, #d4af37 0%, #ffffff 50%, #d4af37 100%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            width: 90%;
+        }
+
+        .Header.show {
+            display: block;
+            animation: helloFadeInOut 4s ease-in-out forwards, textShimmer 1.5s linear infinite;
+        }
+
+        @keyframes helloFadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+        }
+
+        @keyframes textShimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .LUNA {
+            font-size: clamp(24px, 5vw, 50px);
+            margin-top: 5px;
+        }
+
+        /* Circular Checkbox Terms Box */
+        .policy-card {
+            background: var(--luna-card-bg);
+            border: 1px solid var(--luna-border);
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 420px;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            display: none;
+        }
+
+        .policy-card.show-policy {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .policy-card h3 {
+            color: #d4af37;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 14px;
+            color: var(--luna-text-main);
+            margin: 20px 0;
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .checkmark {
+            height: 22px;
+            width: 22px;
+            background-color: transparent;
+            border: 2px solid var(--luna-primary);
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            transition: all 0.25s ease;
+        }
+
+        .checkbox-container:hover input ~ .checkmark {
+            border-color: #d4af37;
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: #d4af37;
+            border-color: #d4af37;
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid #000;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .confirm-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 15px;
+            background: #334155;
+            color: #94a3b8;
+            cursor: not-allowed;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-btn.active {
+            background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Classroom Interface Section (Lalabas lang pagka-Confirm) */
+        .classroom-content {
+            display: none;
+            width: 100%;
+            text-align: center;
+        }
+
+        .classroom-content.active-content {
+            display: block;
+        }
+
+        /* Main Heading */
+        .main-title {
+            font-family: 'Gill Sans', sans-serif;
+            color: orange;
+            text-align: center;
+            font-size: clamp(24px, 6vw, 42px);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: showUpText 0.8s forwards;
+            animation-delay: 1s; /* 1 second delay */
+        }
+
+        @keyframes showUpText {
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* AI Floating Icon Button */
+        .aiIcon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--luna-card-bg);
+            border: 1px solid var(--luna-border);
+            padding: 14px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: showUpButton 0.8s forwards;
+            animation-delay: 1.8s; /* Lalabas kasunod ng main heading */
+            margin: 25px auto 0 auto;
+            max-width: 280px;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .aiIcon:hover {
+            background: orange;
+            transform: translateY(-3px);
+        }
+
+        .aiIcon:hover .icon { color: #000; }
+
+        .icon {
+            font-weight: 900;
+            font-size: 18px;
+            color: var(--luna-accent);
+            transition: color 0.3s ease;
+        }
+
+        @keyframes showUpButton {
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader-container">
+            <div class="spinner-ring"></div>
+            <img src="734101338_122102775789371458_4932560908103581813_n.jpg" alt="Logo" class="loader-luna-face">
+            <h2 class="loader-text">LOADING</h2>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+        </div>
+    </div>
+
+    <!-- Overlay 1: Welcome Header -->
+    <div class="Header" id="Header">WELCOME!<p class="LUNA">ELEVEN-LUNA</p></div>
+
+    <main style="width: 100%; max-width: 500px;">
+        <!-- Step 2: Terms and Conditions Policy Card -->
+        <div class="policy-card" id="policy-card">
+            <h3>Terms and Conditions</h3>
+            <p style="font-size: 13px; color: var(--luna-text-muted);">Please review and accept our policy to proceed further into the classroom ecosystem.</p>
+            
+            <label class="checkbox-container">
+                <input type="checkbox" id="terms-check" onchange="toggleConfirmBtn()">
+                <span class="checkmark"></span>
+                I allow this website to access my device.
+            </label>
+
+            <button id="confirm-btn" class="confirm-btn" disabled onclick="confirmTerms()">Confirm & Proceed</button>
+        </div>
+
+        <!-- Step 3: Main Classroom Section & ChatLeo -->
+        <div class="classroom-content" id="classroom-content">
+            <h1 class="main-title">ELEVEN-LUNA <span style="color: white;">Classroom</span></h1>
+
+            <div class="aiIcon" onclick="direct()">
+                <p class="icon">🤖 Ask ChatLeo</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        window.addEventListener('load', () => {
+            // I-hide ang loading screen
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hide-loader');
+                
+                // 1. Ipakita ang Welcome Text (0s - 4s)
+                const helloText = document.getElementById('Header');
+                helloText.classList.add('show');
+
+                // 2. Matapos ang 4s Welcome animation, ipakita ang Terms & Conditions
+                setTimeout(() => {
+                    document.getElementById('policy-card').classList.add('show-policy');
+                }, 4000);
+
+            }, 500);
+        });
+
+        function toggleConfirmBtn() {
+            const checkBox = document.getElementById('terms-check');
+            const confirmBtn = document.getElementById('confirm-btn');
+            
+            if(checkBox.checked) {
+                confirmBtn.disabled = false;
+                confirmBtn.classList.add('active');
+            } else {
+                confirmBtn.disabled = true;
+                confirmBtn.classList.remove('active');
+            }
+        }
+
+        // 3. Pagka-confirm ng Terms, ilalabas ang ELEVEN-LUNA text (na may 1s delay) at kasunod ang ChatLeo button
+        function confirmTerms() {
+            const policyCard = document.getElementById('policy-card');
+            const classroomContent = document.getElementById('classroom-content');
+
+            policyCard.style.display = 'none';
+            classroomContent.classList.add('active-content');
+        }
+
+        function direct() {
+            window.location.href = 'askAi.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,734 @@
+/* Global Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    position: relative;
+    overflow-x: hidden;
+    background-color: #0b0f19;
+    color: #ffffff;
+}
+
+/* Background Mesh Gradient */
+.bg-gradient {
+    position: fixed;
+    inset: 0;
+    background: 
+        radial-gradient(circle at 15% 20%, rgba(212, 175, 55, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(79, 70, 229, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.95) 0%, #070a12 100%);
+    z-index: -2;
+}
+
+/* Dark Shadow Black Background Overlay */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82); /* Deep Shadow Black */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    z-index: 99;
+}
+
+body.overlay-active::after {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Loading Screen Style */
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    background: #070a12;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.4s ease, visibility 0.4s;
+}
+
+.loading-screen.hide-loader {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+}
+
+.spinner-ring {
+    width: 90px;
+    height: 90px;
+    border: 3px solid rgba(212, 175, 55, 0.15);
+    border-top: 3px solid #d4af37;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    position: absolute;
+    top: -5px;
+}
+
+.loader-luna-face {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #d4af37;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+}
+
+.loader-text {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: #d4af37;
+    margin-top: 5px;
+}
+
+.progress-bar {
+    width: 160px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #d4af37, #f59e0b);
+    animation: loadProgress 1.2s ease-in-out infinite;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes loadProgress {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Header & Logo */
+.logo {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 2;
+}
+
+.logo1 {
+    height: 65px;
+    width: 65px;
+    border-radius: 50%;
+    border: 2px solid #d4af37;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    object-fit: cover;
+}
+
+.help-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 8px 16px;
+    border-radius: 30px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.help-btn:hover {
+    background: rgba(212, 175, 55, 0.2);
+    transform: translateY(-2px);
+}
+
+.help-icon { height: 18px; width: 18px; }
+.help-btn span { font-size: 13px; font-weight: 700; color: #f4ebe1; }
+
+/* Hero Section */
+.hero-container {
+    max-width: 750px;
+    padding: 0 20px;
+    z-index: 1;
+}
+
+.welcome-title {
+    font-size: clamp(40px, 8vw, 75px);
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #f4ebe1;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #cbd5e1;
+    font-size: clamp(12px, 3vw, 15px);
+    font-weight: 400;
+    line-height: 1.6;
+    margin-top: 25px;
+}
+
+.subtitle span { color: #d4af37; font-weight: 700; }
+
+/* Enter Classroom Button & Shimmer Animation */
+.signIn {
+    font-size: 18px;
+    font-weight: 800;
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    background: #0f172a;
+    padding: 16px 42px;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-top: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.shimmer-text {
+    background: linear-gradient(90deg, #d4af37 0%, #ffffff 50%, #d4af37 100%);
+    background-size: 200% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    display: inline-block;
+    animation: shimmerSlowFast 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.signIn:hover {
+    transform: translateY(-3px) scale(1.03);
+    border-color: #d4af37;
+    box-shadow: 0 12px 30px rgba(212, 175, 55, 0.3);
+}
+
+.signIn:hover .shimmer-text { animation-duration: 0.8s; }
+
+@keyframes shimmerSlowFast {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+/* 4-Second Shimmering "Hello" Text Animation */
+.hello-text {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    font-size: clamp(48px, 10vw, 72px);
+    font-weight: 900;
+    letter-spacing: 4px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 101;
+    display: none;
+
+    background: linear-gradient(
+        90deg, 
+        #d4af37 0%, 
+        #ffffff 50%, 
+        #d4af37 100%
+    );
+    background-size: 200% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.hello-text.show {
+    display: block;
+    animation: 
+        helloFadeInOut 4s ease-in-out forwards,
+        textShimmer 1.5s linear infinite;
+}
+
+@keyframes helloFadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+
+@keyframes textShimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+/* Sign In Wrapper & Animations */
+.wrapper {
+    position: fixed;
+    z-index: 100;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 35px 30px;
+    border-radius: 24px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+    width: 90%;
+    max-width: 400px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+}
+
+.wrapper.active {
+    display: flex;
+    animation: wrapperIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.wrapper.closing {
+    animation: wrapperOut 0.4s ease-in forwards;
+}
+
+@keyframes wrapperIn {
+    0% { opacity: 0; transform: translateY(-40px) scale(0.9); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes wrapperOut {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(100px) scale(0.85); }
+}
+
+.modal-title { font-size: 26px; font-weight: 800; color: #ffffff; margin-bottom: 6px; }
+.modal-subtext { font-size: 11px; color: #94a3b8; margin-bottom: 22px; line-height: 1.4; }
+
+/* Floating Placeholder Inputs */
+.input-group {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.input-control {
+    width: 100%;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 16px 14px 6px 14px;
+    font-size: 14px;
+    color: #ffffff;
+    outline: none;
+    transition: all 0.25s ease;
+}
+
+.floating-label {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    color: #94a3b8;
+    pointer-events: none;
+    transition: all 0.25s ease;
+}
+
+.input-control:focus ~ .floating-label,
+.input-control:not(:placeholder-shown) ~ .floating-label {
+    top: 10px;
+    transform: translateY(0);
+    font-size: 10px;
+    font-weight: 700;
+    color: #d4af37;
+}
+
+.input-control:focus {
+    border-color: #d4af37;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
+}
+
+/* Centered reCAPTCHA Wrapper */
+.recaptcha-center-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.signIn-sub {
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+    color: #ffffff;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+.signIn-sub:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+}
+
+.close {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.close:hover { background: #ef4444; color: white; }
+.secret-key-note { font-size: 10px; color: #64748b; margin-top: 8px; }
+.error-Msg { font-size: 12px; color: #f87171; margin-bottom: 8px; }
+
+@media (max-width: 480px) {
+    .logo1 { height: 50px; width: 50px; }
+    .help-btn span { display: none; }
+    .wrapper { padding: 25px 18px; }
+    .recaptcha-center-wrapper { transform: scale(0.85); }
+}
+
+ /* Upper Right Enter PIN Button */
+        .top-pin-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .top-pin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6);
+        }
+
+        /* Animated Pin Overlay Wrapper */
+        .pin-wrapper {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.7);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            backdrop-filter: blur(15px);
+            padding: 30px 20px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 440px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .pin-wrapper.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .pin-wrapper .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .pin-wrapper h3 {
+            color: #d4af37;
+            margin-bottom: 8px;
+            font-size: 20px;
+        }
+
+        .pin-wrapper p {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .pin-label-text {
+            font-size: 12px;
+            color: #d4af37;
+            font-weight: 600;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+
+        /* 8-Digit Box Group */
+        .pin-box-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .pin-box {
+            width: 38px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .pin-box:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .pin-confirm-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .pin-confirm-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #4b5563;
+        }
+
+        .pin-error {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        /* Upper Right Enter PIN Button */
+        .top-pin-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .top-pin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6);
+        }
+
+        /* Animated Pin Overlay Wrapper */
+        .pin-wrapper {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.7);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            backdrop-filter: blur(15px);
+            padding: 30px 20px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 440px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .pin-wrapper.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .pin-wrapper .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .pin-wrapper h3 {
+            color: #d4af37;
+            margin-bottom: 8px;
+            font-size: 20px;
+        }
+
+        .pin-wrapper p {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .pin-label-text {
+            font-size: 12px;
+            color: #d4af37;
+            font-weight: 600;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+
+        /* Responsive 8-Digit Box Group */
+        .pin-box-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .pin-box {
+            flex: 1;
+            min-width: 0;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .pin-box:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .pin-confirm-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .pin-confirm-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #4b5563;
+        }
+
+        .pin-error {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        /* Mobile Screen Optimization */
+        @media (max-width: 480px) {
+            .top-pin-btn {
+                top: 12px;
+                right: 12px;
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+
+            .pin-wrapper {
+                padding: 24px 15px;
+                width: 95%;
+            }
+
+            .pin-wrapper h3 {
+                font-size: 17px;
+            }
+
+            .pin-wrapper p {
+                font-size: 11px;
+            }
+
+            .pin-box-group {
+                gap: 2px;
+            }
+
+            .pin-box {
+                height: 42px;
+                font-size: 16px;
+                border-radius: 6px;
+            }
+
+            .pin-confirm-btn {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
